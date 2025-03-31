@@ -244,7 +244,46 @@ This is done to find the trend os sales over time.
     on sales.ProductId=products.ProductId ) as calc
 
 
+##  *Finding Month over Month analysis for a product in a year*
 
+   In a sales data , we need to check the month over month analysis to check the trend , for the products , which sells the high/low at during the months in a year .
+   Doing this we can get to know at what period of time , which product sales goes the highest / lowest or we can stock up those products in as store . 
+   we can also check whether the profit of the product is increased/decreased when compared to the previous months.
+
+
+   Created a temporary table to sum up the profit of a product , in a month , in a year.
+   Combined that query as a subquery , then used the lead function to compare the next month sales with the current month .
+   In case to see the prevoius month sales when compared to the current month sales used the lag function.
+
+
+
+    with monthlydata as(
+    SELECT 
+    productid,
+    round(sum(profit) ,2)as total_profit,
+    extract(month from date) as month_profit,
+    extract(year from date) as year_profit
+    FROM `myfirstproject-445620.sales.profit_overtime` 
+    group by productid , extract(month from date) ,
+    extract(year from date) 
+    )
+    
+    select * ,
+    lag(total_profit) over(partition by productid , year_profit order by month_profit) as previous_month_sales,
+    lead(total_profit) over(partition by productid , year_profit order by month_profit) as next_month_sales,
+    round(lead(total_profit) over(partition by productid , year_profit order by month_profit) - total_profit ,2) as MoMchange,
+    round((lead(total_profit) over(partition by productid , year_profit order by month_profit) - total_profit) *100/total_profit ,2) as MoMpercentagechange,
+    from 
+    (
+    SELECT 
+    productid,
+    round(sum(profit) ,2)as total_profit,
+    extract(month from date) as month_profit,
+    extract(year from date) as year_profit
+    FROM `myfirstproject-445620.sales.profit_overtime` 
+    group by productid , extract(month from date) ,
+    extract(year from date) 
+    )
 
 ## These are the analysis for the sales data .
 ## Thankyou for visiting.
